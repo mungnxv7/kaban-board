@@ -1,4 +1,4 @@
-const Column = () => {
+const ColumnContent = () => {
   return (
     <div className="flex flex-col p-1 overflow-auto column-scroll">
       <div
@@ -427,4 +427,4 @@ const Column = () => {
   );
 };
 
-export default Column;
+export default ColumnContent;
