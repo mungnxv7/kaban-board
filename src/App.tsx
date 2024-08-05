@@ -1,6 +1,6 @@
 import { useState } from "react";
 import "./App.css";
-import Column from "./components/Colums";
+import Column from "./components/Column";
 import Header from "./components/Header";
 import Title from "./components/Title";
 import { ColumnType } from "./types";
@@ -25,7 +25,7 @@ function App() {
         <Title />
         <div className="flex flex-grow px-10 mt-4 space-x-6 overflow-auto">
           {columns.map((column) => (
-            <Column key={column.id} />
+            <Column key={column.id} column={column} />
           ))}
           <AddColumn addColumn={columnToAdd} />
         </div>
