@@ -1,4 +1,3 @@
-import { useState } from "react";
 import "./App.css";
 import Column from "./components/Column";
 import Header from "./components/Header";
@@ -6,16 +5,20 @@ import Title from "./components/Title";
 import { ColumnType } from "./types";
 import AddColumn from "./components/AddColumn";
 import { generateId } from "./utils";
+import { useDispatch, useSelector } from "react-redux";
+import { addColumn } from "./redux/columns/columnSlice";
+import { RootState } from "./redux/store";
 
 function App() {
-  const [columns, setColums] = useState<ColumnType[]>([]);
+  const columns = useSelector((state: RootState) => state.column);
+  const dispatch = useDispatch();
 
   const columnToAdd = () => {
     const newColumn: ColumnType = {
       id: generateId(),
       title: `Column ${columns.length + 1}`,
     };
-    setColums([...columns, newColumn]);
+    dispatch(addColumn(newColumn));
   };
 
   return (

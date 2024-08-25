@@ -12,6 +12,7 @@ const Column = ({ column }: ColumnProps) => {
   return (
     <div className="flex flex-col flex-shrink-0 w-72 px-1">
       <HeaderColumn
+        id={column.id}
         title={column.title}
         quantityColumn={column?.children?.length ?? 0}
         onClick={addChildren}
