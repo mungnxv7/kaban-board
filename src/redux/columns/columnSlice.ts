@@ -8,22 +8,24 @@ const columnSlice = createSlice({
   name: "columns",
   reducers: {
     setTitleColumn: (state, action) => {
-      console.log(action);
-
       const newAray = state.map((column) => {
         if (column.id === action.payload.id) {
           column.title = action.payload.title;
         }
         return column;
       });
-      console.log(newAray);
+
+      state = newAray;
     },
     addColumn: (state, action) => {
       state.push(action.payload);
     },
+    setColumns: (state, action) => {
+      return action.payload;
+    },
   },
 });
 
-export const { setTitleColumn, addColumn } = columnSlice.actions;
+export const { setTitleColumn, addColumn, setColumns } = columnSlice.actions;
 
 export default columnSlice.reducer;
