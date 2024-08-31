@@ -8,7 +8,7 @@ import { generateId } from "./utils";
 import { useDispatch, useSelector } from "react-redux";
 import { addColumn, setColumns } from "./redux/columns/columnSlice";
 import { RootState } from "./redux/store";
-import { DndContext, DragEndEvent } from "@dnd-kit/core";
+import { DndContext, DragEndEvent, DragOverEvent } from "@dnd-kit/core";
 import { arrayMove, SortableContext } from "@dnd-kit/sortable";
 import { useMemo } from "react";
 
@@ -26,6 +26,7 @@ function App() {
     const newColumn: ColumnType = {
       id: generateId(),
       title: `Column ${columns.length + 1}`,
+      children: [],
     };
     dispatch(addColumn(newColumn));
   };
@@ -42,6 +43,18 @@ function App() {
     const overColumIndex = columns.findIndex((column) => column.id === over.id);
 
     dispatch(setColumns(arrayMove(columns, activeColumnIndex, overColumIndex)));
+  };
+
+  const onDragOver = (event: DragOverEvent) => {
+    const { active, over } = event;
+    if (!over) return;
+
+    if (active.id === over.id) return;
+    const isActiveCard = active.data.current?.type === "card";
+    const isOverCard = over.data.current?.type === "card";
+    if (isActiveCard && isOverCard) {
+      const activeCardIndex = co.findIndex((column) => column.id === active.id);
+    }
   };
 
   return (
