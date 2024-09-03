@@ -23,6 +23,9 @@ const columnSlice = createSlice({
     setColumns: (state, action) => {
       return action.payload;
     },
+    setColumnsDrag: (state, action) => {
+      state[action.payload.index].children = action.payload.children;
+    },
     addChildrenColumn: (state, action) => {
       const columIndex = state.findIndex(
         (colum) => colum.id === action.payload.columnId
@@ -32,7 +35,12 @@ const columnSlice = createSlice({
   },
 });
 
-export const { setTitleColumn, addColumn, setColumns, addChildrenColumn } =
-  columnSlice.actions;
+export const {
+  setTitleColumn,
+  addColumn,
+  setColumns,
+  addChildrenColumn,
+  setColumnsDrag,
+} = columnSlice.actions;
 
 export default columnSlice.reducer;

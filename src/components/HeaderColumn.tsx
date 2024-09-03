@@ -2,14 +2,12 @@ import { ChangeEvent, useState } from "react";
 import ButtonAdd from "./ButtonAdd";
 import { useDispatch } from "react-redux";
 import { setTitleColumn } from "../redux/columns/columnSlice";
-import { DraggableAttributes } from "@dnd-kit/core";
 import { SyntheticListenerMap } from "@dnd-kit/core/dist/hooks/utilities";
 
 interface HeaderColumnProps {
   title: string;
   quantityColumn: number;
   id: number;
-  attributes: DraggableAttributes;
   listeners?: SyntheticListenerMap;
   onClick: () => void;
 }
@@ -18,7 +16,6 @@ const HeaderColumn = ({
   title,
   id,
   quantityColumn,
-  attributes,
   listeners,
   onClick,
 }: HeaderColumnProps) => {
@@ -65,7 +62,7 @@ const HeaderColumn = ({
           </>
         )}
       </div>
-      <div className="grow" {...attributes} {...listeners}>
+      <div className="grow" {...listeners}>
         <ButtonAdd onClick={onClick} />
       </div>
     </div>

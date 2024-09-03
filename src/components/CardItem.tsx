@@ -8,14 +8,20 @@ interface Props {
 }
 
 const CardItem = ({ card }: Props) => {
-  const { setNodeRef, attributes, listeners, transform, transition } =
-    useSortable({
-      id: card.id,
-      data: {
-        type: "card",
-        card,
-      },
-    });
+  const {
+    setNodeRef,
+    attributes,
+    listeners,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({
+    id: card.id,
+    data: {
+      type: "task",
+      card,
+    },
+  });
 
   const style = {
     transition,
@@ -24,12 +30,13 @@ const CardItem = ({ card }: Props) => {
 
   return (
     <div
-      className="relative flex flex-col items-start p-4 bg-white rounded-lg cursor-pointer bg-opacity-90 group hover:bg-opacity-100"
-      draggable="true"
+      className={`relative p-4 bg-white rounded-lg bg-opacity-90 group ${
+        isDragging && "opacity-50 border border-indigo-300"
+      }`}
       ref={setNodeRef}
       style={style}
-      {...attributes}
       {...listeners}
+      {...attributes}
     >
       <Priority />
       <h4 className="mt-3 text-sm font-medium">

@@ -11,19 +11,24 @@ import { useMemo } from "react";
 
 interface ColumnProps {
   column: ColumnType;
-  className?: string;
 }
 
-const Column = ({ column, className }: ColumnProps) => {
+const Column = ({ column }: ColumnProps) => {
   const dispatch = useDispatch();
-  const { setNodeRef, attributes, listeners, transform, transition } =
-    useSortable({
-      id: column.id,
-      data: {
-        type: "column",
-        column,
-      },
-    });
+  const {
+    setNodeRef,
+    attributes,
+    listeners,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({
+    id: column.id,
+    data: {
+      type: "column",
+      column,
+    },
+  });
 
   const childrenIds = useMemo(
     () => column.children.map((column) => column.id),
@@ -48,24 +53,26 @@ const Column = ({ column, className }: ColumnProps) => {
   return (
     <div
       style={style}
+      {...attributes}
       ref={setNodeRef}
-      className={`flex flex-col flex-shrink-0 w-72 px-1 shadow-md bg-[#ffffff]/10 rounded-lg ${className}`}
+      className={`flex flex-col flex-shrink-0 w-72 px-1 shadow-md bg-[#ffffff]/10 rounded-lg ${
+        isDragging && "opacity-50"
+      }`}
     >
       <HeaderColumn
-        attributes={attributes}
         listeners={listeners}
         id={column.id}
         title={column.title}
         quantityColumn={column?.children?.length ?? 0}
         onClick={addChildren}
       />
-      <SortableContext items={childrenIds}>
-        <div className="flex flex-col p-1 overflow-auto column-scroll gap-2">
+      <div className="flex flex-col p-1 gap-2">
+        <SortableContext items={childrenIds}>
           {column?.children.map((item) => (
             <CardItem key={item.id} card={item} />
           ))}
-        </div>
-      </SortableContext>
+        </SortableContext>
+      </div>
       <div
         className="flex items-center gap-2 bg-[#ffffff]/40 hover:bg-indigo-500 hover:text-indigo-100 p-1 mt-3 rounded-md duration-200 cursor-pointer border border-indigo-50"
         onClick={addChildren}
