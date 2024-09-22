@@ -1,20 +1,17 @@
 import HeaderColumn from "./HeaderColumn";
 import CardItem from "./CardItem";
-import { ColumnType, ICardItem } from "../types";
+import { ColumnType, FormAction } from "../types";
 import { SortableContext, useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { useDispatch } from "react-redux";
 import AddIcon from "../svgs/AddIcon";
-import { generateId } from "../utils";
-import { addChildrenColumn } from "../redux/columns/columnSlice";
 import { useMemo } from "react";
 
 interface ColumnProps {
   column: ColumnType;
+  addChildren: (action: FormAction) => void;
 }
 
-const Column = ({ column }: ColumnProps) => {
-  const dispatch = useDispatch();
+const Column = ({ column, addChildren }: ColumnProps) => {
   const {
     setNodeRef,
     attributes,
@@ -35,16 +32,6 @@ const Column = ({ column }: ColumnProps) => {
     [column.children]
   );
 
-  const addChildren = () => {
-    const id = generateId();
-
-    const newCart: ICardItem = {
-      id,
-      title: "abc",
-    };
-    dispatch(addChildrenColumn({ columnId: column.id, children: newCart }));
-  };
-
   const style = {
     transition,
     transform: CSS.Transform.toString(transform),
@@ -55,31 +42,33 @@ const Column = ({ column }: ColumnProps) => {
       style={style}
       {...attributes}
       ref={setNodeRef}
-      className={`flex flex-col flex-shrink-0 w-72 px-1 shadow-md bg-[#ffffff]/10 rounded-lg ${
-        isDragging && "opacity-50"
-      }`}
+      className={`w-72 px-1 rounded-lg ${isDragging && "opacity-50"}`}
     >
       <HeaderColumn
         listeners={listeners}
         id={column.id}
         title={column.title}
         quantityColumn={column?.children?.length ?? 0}
-        onClick={addChildren}
       />
-      <div className="flex flex-col p-1 gap-2">
-        <SortableContext items={childrenIds}>
+      <SortableContext items={childrenIds}>
+        <div className="flex flex-col p-1 gap-2">
           {column?.children.map((item) => (
-            <CardItem key={item.id} card={item} />
+            <CardItem
+              key={item.id}
+              card={item}
+              idColumn={column.id}
+              onEdit={addChildren}
+            />
           ))}
-        </SortableContext>
-      </div>
-      <div
-        className="flex items-center gap-2 bg-[#ffffff]/40 hover:bg-indigo-500 hover:text-indigo-100 p-1 mt-3 rounded-md duration-200 cursor-pointer border border-indigo-50"
-        onClick={addChildren}
-      >
-        <AddIcon />
-        <span>Add new card</span>
-      </div>
+        </div>
+        <div
+          className="flex items-center gap-2 bg-[#ffffff]/40 hover:bg-white p-1 mt-3 rounded-md duration-200 cursor-pointer border border-indigo-50"
+          onClick={() => addChildren({ isOpen: true, idColumn: column.id })}
+        >
+          <AddIcon />
+          <span className="font-medium">Add new card</span>
+        </div>
+      </SortableContext>
     </div>
   );
 };

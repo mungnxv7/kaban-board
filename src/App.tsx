@@ -1,15 +1,17 @@
 import "./App.css";
 import Column from "./components/Column";
-import Header from "./components/Header";
+// import Header from "./components/Header";
 import Title from "./components/Title";
-import { ColumnType, ICardItem } from "./types";
+import { ColumnType, FormAction, FormCard, ICardItem } from "./types";
 import AddColumn from "./components/AddColumn";
 import { generateId } from "./utils";
 import { useDispatch, useSelector } from "react-redux";
 import {
+  addChildrenColumn,
   addColumn,
   setColumns,
   setColumnsDrag,
+  updateChildrenColumn,
 } from "./redux/columns/columnSlice";
 import { RootState } from "./redux/store";
 import {
@@ -23,10 +25,16 @@ import {
 import { arrayMove, SortableContext } from "@dnd-kit/sortable";
 import { useMemo, useState } from "react";
 import CardItem from "./components/CardItem";
+import FromTask from "./components/FromTask";
 
 function App() {
   const [isActiveColumn, setIsActiveColumn] = useState<ColumnType | null>(null);
   const [isActiveTask, setIsActiveTask] = useState<ICardItem | null>(null);
+  const [formAction, setFormAction] = useState<FormAction>({
+    isOpen: false,
+    idColumn: 0,
+  });
+  const [updateCard, setUpdateCard] = useState<ICardItem | null>(null);
   const columns = useSelector((state: RootState) => state.column);
   const dispatch = useDispatch();
 
@@ -68,7 +76,7 @@ function App() {
 
   const onDragMove = (event: DragMoveEvent) => {
     const { active, over } = event;
-    // Handle Items Sorting
+
     if (
       active.data.current?.type === "task" &&
       over?.data.current?.type === "task" &&
@@ -76,14 +84,11 @@ function App() {
       over &&
       active.id !== over.id
     ) {
-      // Find the active container and over container
       const activeContainer = findValueOfItems(active.id, "task");
       const overContainer = findValueOfItems(over.id, "task");
 
-      // If the active or over container is not found, return
       if (!activeContainer || !overContainer) return;
 
-      // Find the index of the active and over container
       const activeContainerIndex = columns.findIndex(
         (container) => container.id === activeContainer.id
       );
@@ -91,7 +96,6 @@ function App() {
         (container) => container.id === overContainer.id
       );
 
-      // Find the index of the active and over item
       const activeitemIndex = activeContainer.children.findIndex(
         (item) => item.id === active.id
       );
@@ -99,7 +103,7 @@ function App() {
       const overitemIndex = overContainer.children.findIndex(
         (item) => item.id === over.id
       );
-      // In the same container
+
       if (activeContainerIndex === overContainerIndex) {
         const newArray = arrayMove(
           columns[activeContainerIndex].children,
@@ -110,7 +114,6 @@ function App() {
           setColumnsDrag({ index: activeContainerIndex, children: newArray })
         );
       } else {
-        // In different containers
         const newItems = columns.map((column) => ({
           ...column,
           children: [...column.children],
@@ -131,71 +134,226 @@ function App() {
     }
 
     // Handling Item Drop Into a Container
-    // if (
-    //   active.data.current?.type === "item" &&
-    //   over?.data.current?.type === "container" &&
-    //   active &&
-    //   over &&
-    //   active.id !== over.id
-    // ) {
-    //   // Find the active and over container
-    //   const activeContainer = findValueOfItems(active.id, "item");
-    //   const overContainer = findValueOfItems(over.id, "container");
+    if (
+      active.data.current?.type === "task" &&
+      over?.data.current?.type === "column" &&
+      active &&
+      over &&
+      active.id !== over.id
+    ) {
+      console.log("container");
 
-    //   // If the active or over container is not found, return
-    //   if (!activeContainer || !overContainer) return;
+      const activeContainer = findValueOfItems(active.id, "task");
+      const overContainer = findValueOfItems(over.id, "column");
 
-    //   // Find the index of the active and over container
-    //   const activeContainerIndex = columns.findIndex(
-    //     (container) => container.id === activeContainer.id
-    //   );
-    //   const overContainerIndex = columns.findIndex(
-    //     (container) => container.id === overContainer.id
-    //   );
+      if (!activeContainer || !overContainer) return;
 
-    //   // Find the index of the active and over item
-    //   const activeitemIndex = activeContainer.children.findIndex(
-    //     (item) => item.id === active.id
-    //   );
+      const activeContainerIndex = columns.findIndex(
+        (container) => container.id === activeContainer.id
+      );
+      const overContainerIndex = columns.findIndex(
+        (container) => container.id === overContainer.id
+      );
 
-    //   // Remove the active item from the active container and add it to the over container
-    //   const newItems = [...columns];
-    //   const [removeditem] = newItems[activeContainerIndex].children.splice(
-    //     activeitemIndex,
-    //     1
-    //   );
-    //   newItems[overContainerIndex].children.push(removeditem);
-    //   console.log(newItems);
-    // }
+      const activeitemIndex = activeContainer.children.findIndex(
+        (item) => item.id === active.id
+      );
+
+      const newItems = columns.map((column) => ({
+        ...column,
+        children: [...column.children],
+      }));
+
+      const [removeitem] = newItems[activeContainerIndex].children.splice(
+        activeitemIndex,
+        1
+      );
+      newItems[overContainerIndex].children.push(removeitem);
+      dispatch(setColumns(newItems));
+    }
   };
 
   const onDragEnd = (event: DragEndEvent) => {
-    console.log("drag end", event);
+    const { active, over } = event;
+
+    if (
+      active.data.current?.type === "column" &&
+      over?.data.current?.type === "column" &&
+      active &&
+      over &&
+      active.id !== over.id
+    ) {
+      const activeContainerIndex = columns.findIndex(
+        (container) => container.id === active.id
+      );
+      const overContainerIndex = columns.findIndex(
+        (container) => container.id === over.id
+      );
+
+      let newItems = [...columns];
+      newItems = arrayMove(newItems, activeContainerIndex, overContainerIndex);
+      dispatch(setColumns(newItems));
+    }
+
+    if (
+      active.data.current?.type === "task" &&
+      over?.data.current?.type === "task" &&
+      active &&
+      over &&
+      active.id !== over.id
+    ) {
+      const activeContainer = findValueOfItems(active.id, "item");
+      const overContainer = findValueOfItems(over.id, "item");
+
+      if (!activeContainer || !overContainer) return;
+
+      const activeContainerIndex = columns.findIndex(
+        (container) => container.id === activeContainer.id
+      );
+      const overContainerIndex = columns.findIndex(
+        (container) => container.id === overContainer.id
+      );
+
+      const activeitemIndex = activeContainer.children.findIndex(
+        (item) => item.id === active.id
+      );
+      const overitemIndex = overContainer.children.findIndex(
+        (item) => item.id === over.id
+      );
+
+      if (activeContainerIndex === overContainerIndex) {
+        const newItems = [...columns];
+        newItems[activeContainerIndex].children = arrayMove(
+          newItems[activeContainerIndex].children,
+          activeitemIndex,
+          overitemIndex
+        );
+        dispatch(setColumns(newItems));
+      } else {
+        const newItems = [...columns];
+        const [removeditem] = newItems[activeContainerIndex].children.splice(
+          activeitemIndex,
+          1
+        );
+        newItems[overContainerIndex].children.splice(
+          overitemIndex,
+          0,
+          removeditem
+        );
+        dispatch(setColumns(newItems));
+      }
+    }
+
+    if (
+      active.data.current?.type === "task" &&
+      over?.data.current?.type === "column" &&
+      active &&
+      over &&
+      active.id !== over.id
+    ) {
+      const activeContainer = findValueOfItems(active.id, "item");
+      const overContainer = findValueOfItems(over.id, "container");
+
+      if (!activeContainer || !overContainer) return;
+
+      const activeContainerIndex = columns.findIndex(
+        (container) => container.id === activeContainer.id
+      );
+      const overContainerIndex = columns.findIndex(
+        (container) => container.id === overContainer.id
+      );
+
+      const activeitemIndex = activeContainer.children.findIndex(
+        (item) => item.id === active.id
+      );
+      const newItems = [...columns];
+      const [removeditem] = newItems[activeContainerIndex].children.splice(
+        activeitemIndex,
+        1
+      );
+      newItems[overContainerIndex].children.push(removeditem);
+      dispatch(setColumns(newItems));
+    }
   };
+
+  const handleFormAction = (action: FormAction) => {
+    setFormAction(action);
+    const findIndexColumn = columns.findIndex(
+      (column) => column.id === action.idColumn
+    );
+    if (action.idChildren) {
+      const cardItem = columns[findIndexColumn].children.find(
+        (card) => card.id === action.idChildren
+      );
+      setUpdateCard(cardItem ?? null);
+    }
+  };
+
+  const handleSubmitForm = (data: FormCard) => {
+    if (formAction.idChildren) {
+      const newCard: ICardItem = {
+        id: formAction.idChildren,
+        ...data,
+      };
+      dispatch(
+        updateChildrenColumn({
+          columnId: formAction.idColumn,
+          children: newCard,
+        })
+      );
+    } else {
+      const id = generateId();
+      const newCard: ICardItem = {
+        id,
+        ...data,
+      };
+      dispatch(
+        addChildrenColumn({ columnId: formAction.idColumn, children: newCard })
+      );
+    }
+    setFormAction({ isOpen: false, idColumn: 0, idChildren: undefined });
+    setUpdateCard(null);
+  };
+
   return (
     <>
-      <div className="text-gray-700 bg-gradient-to-tr from-blue-200 via-indigo-200 to-pink-200">
-        <Header />
+      <div className="text-gray-700 bg-gradient-to-tr from-blue-200 via-indigo-200 to-pink-200  h-screen">
+        {/* <Header /> */}
         <Title />
         <DndContext
           onDragStart={onDragStart}
           onDragEnd={onDragEnd}
           onDragMove={onDragMove}
         >
-          <div className="flex w-screen px-10 mt-4 space-x-6 overflow-auto h-screen">
-            <SortableContext items={columnIds}>
+          <SortableContext items={columnIds}>
+            <div className="flex w-screen px-10 mt-4 space-x-6 overflow-auto">
               {columns.map((column) => (
-                <Column key={column.id} column={column} />
+                <Column
+                  addChildren={handleFormAction}
+                  key={column.id}
+                  column={column}
+                />
               ))}
               <AddColumn addColumn={columnToAdd} />
-            </SortableContext>
-          </div>
+            </div>
+          </SortableContext>
           <DragOverlay adjustScale={false}>
-            {isActiveColumn && <Column column={isActiveColumn} />}
-            {isActiveTask && <CardItem card={isActiveTask} />}
+            {isActiveColumn && (
+              <Column addChildren={handleFormAction} column={isActiveColumn} />
+            )}
+            {isActiveTask && (
+              <CardItem
+                card={isActiveTask}
+                idColumn={0}
+                onEdit={handleFormAction}
+              />
+            )}
           </DragOverlay>
         </DndContext>
       </div>
+      {formAction.isOpen && (
+        <FromTask submit={handleSubmitForm} dataCard={updateCard} />
+      )}
     </>
   );
 }

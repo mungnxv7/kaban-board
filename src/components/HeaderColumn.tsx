@@ -1,15 +1,15 @@
-import { ChangeEvent, useState } from "react";
-import ButtonAdd from "./ButtonAdd";
+import { ChangeEvent, useEffect, useRef, useState } from "react";
+// import ButtonAdd from "./ButtonAdd";
 import { useDispatch } from "react-redux";
-import { setTitleColumn } from "../redux/columns/columnSlice";
+import { deleteColumn, setTitleColumn } from "../redux/columns/columnSlice";
 import { SyntheticListenerMap } from "@dnd-kit/core/dist/hooks/utilities";
+import trashIcon from "../assets/trash.svg";
 
 interface HeaderColumnProps {
   title: string;
   quantityColumn: number;
   id: number;
   listeners?: SyntheticListenerMap;
-  onClick: () => void;
 }
 
 const HeaderColumn = ({
@@ -17,15 +17,21 @@ const HeaderColumn = ({
   id,
   quantityColumn,
   listeners,
-  onClick,
 }: HeaderColumnProps) => {
   const dispatch = useDispatch();
   const [isEditTitle, setIsEditTitle] = useState<boolean>(false);
   const [textTitle, setTextTitle] = useState<string>(title ?? "");
+  const inputRef = useRef<HTMLInputElement | null>(null);
 
   const onSetEditTitle = () => {
     setIsEditTitle(true);
   };
+
+  useEffect(() => {
+    if (isEditTitle && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [isEditTitle]);
 
   const onBlurInputTitle = () => {
     setIsEditTitle(false);
@@ -37,11 +43,16 @@ const HeaderColumn = ({
     setTextTitle(value);
   };
 
+  const onDeleteColumn = () => {
+    dispatch(deleteColumn(id));
+  };
+
   return (
     <div className="flex items-center h-10 px-2">
       <div>
         {isEditTitle ? (
           <input
+            ref={inputRef}
             name="title"
             className="h-6 rounded-md p-1 text-sm bg-transparent outline outline-2 outline-blue-500"
             value={textTitle}
@@ -62,8 +73,9 @@ const HeaderColumn = ({
           </>
         )}
       </div>
-      <div className="grow" {...listeners}>
-        <ButtonAdd onClick={onClick} />
+      <div className="grow" {...listeners}></div>
+      <div className="w-max" onClick={onDeleteColumn}>
+        <img width={20} src={trashIcon} />
       </div>
     </div>
   );
